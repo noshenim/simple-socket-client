@@ -22,6 +22,9 @@ void Debugger::on_connect(const std::string &host, const std::string &service)
 
 int main(int argc, char *argv[])
 {
+	g_thread_init(NULL);
+	gdk_threads_init();
+	
 	gtk_init(&argc, &argv);
 
 	ClientUI ui;
@@ -30,7 +33,9 @@ int main(int argc, char *argv[])
 	ui.add_connect_listener(d);
 	ui.display();
 
+	gdk_threads_enter();
 	gtk_main();
+	gdk_threads_leave();
 
 	return 0;
 }

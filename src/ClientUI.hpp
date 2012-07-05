@@ -37,6 +37,7 @@ public:
 	void remove_send_listener(SendListener &listener);
 	void add_connect_listener(ConnectListener &listener);
 	void remove_connect_listener(ConnectListener &listener);
+	void on_receive(const std::string &message);
 private:
 	std::list<SendListener*> send_listener_list;
 	std::list<SendListener*> send_listener_remove_list;
@@ -52,6 +53,10 @@ private:
 	GtkWidget *bot_line;
 	GtkWidget *send_text;
 	GtkWidget *send_button;
+	static gboolean connect_text_key_press_event(
+			GtkWidget *widget, 
+			GdkEventKey *event, 
+			ClientUI *client_ui);
 	static gboolean connect_button_clicked(
 			GtkWidget *widget,
 			ClientUI *client_ui);
@@ -65,7 +70,7 @@ private:
 	static gboolean main_window_destroy(
 			GtkWidget *widget, 
 			ClientUI *client_ui);
-	void connect_clicked();
+	void submit_connect();
 	void send_message();
 };
 

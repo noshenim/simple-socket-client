@@ -22,14 +22,6 @@ void ConnectListener::connect(const std::string &host,
 
 ClientUI::ClientUI()
 {
-}
-
-ClientUI::~ClientUI()
-{
-}
-
-void ClientUI::display()
-{
 	main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
 	gtk_window_set_default_size(GTK_WINDOW(main_window), 800, 600);
@@ -59,6 +51,14 @@ void ClientUI::display()
 	gtk_box_pack_start(GTK_BOX(main_box), bot_line, FALSE, FALSE, 0);
 	gtk_container_add(GTK_CONTAINER(main_window), main_box);
 
+	g_signal_connect(GTK_OBJECT(host_name), 
+			 "key-press-event", 
+			 G_CALLBACK(&ClientUI::connect_text_key_press_event),
+			 this);
+	g_signal_connect(GTK_OBJECT(service_text), 
+			 "key-press-event", 
+			 G_CALLBACK(&ClientUI::connect_text_key_press_event),
+			 this);
 	g_signal_connect(GTK_OBJECT(connect_button), 
 			 "clicked", 
 			 G_CALLBACK(&ClientUI::connect_button_clicked),
@@ -75,8 +75,27 @@ void ClientUI::display()
 			 "destroy", 
 			 G_CALLBACK(&ClientUI::main_window_destroy), 
 			 this);
+}
 
+ClientUI::~ClientUI()
+{
+}
+
+void ClientUI::display()
+{
 	gtk_widget_show_all(main_window);
+}
+
+void ClientUI::on_receive(const std::string &message)
+{
+	gtk_threads_enter();
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(
+						GTK_TEXT_VIEW(client_text));
+	gtk_text_buffer_insert_at_cursor(
+			buffer, 
+			message.data(), 
+			message.length());
+	gtk_threads_leave();
 }
 
 void ClientUI::add_connect_listener(ConnectListener &listener)
@@ -102,7 +121,17 @@ void ClientUI::remove_send_listener(SendListener &listener)
 gboolean ClientUI::connect_button_clicked(GtkWidget *widget, 
 					  ClientUI *client_ui)
 {
-	client_ui->connect_clicked();
+	client_ui->submit_connect();
+}
+
+gboolean ClientUI::connect_text_key_press_event(GtkWidget *widget, 
+					     GdkEventKey *event, 
+					     ClientUI *client_ui)
+{
+	if (event->keyval == GDK_KEY_Return) {
+		client_ui->submit_connect();
+	}
+	return FALSE;
 }
 
 gboolean ClientUI::send_text_key_press_event(GtkWidget *widget, 
@@ -127,7 +156,7 @@ gboolean ClientUI::main_window_destroy(GtkWidget *widget,
 	gtk_main_quit();
 }
 
-void ClientUI::connect_clicked()
+void ClientUI::submit_connect()
 {
 	const gchar *host = gtk_entry_get_text(GTK_ENTRY(host_name));
 	guint16 host_len = gtk_entry_get_text_length(GTK_ENTRY(host_name));
