@@ -88,14 +88,14 @@ void ClientUI::display()
 
 void ClientUI::on_receive(const std::string &message)
 {
-	gtk_threads_enter();
+	gdk_threads_enter();
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer(
 						GTK_TEXT_VIEW(client_text));
 	gtk_text_buffer_insert_at_cursor(
 			buffer, 
 			message.data(), 
 			message.length());
-	gtk_threads_leave();
+	gdk_threads_leave();
 }
 
 void ClientUI::add_connect_listener(ConnectListener &listener)
