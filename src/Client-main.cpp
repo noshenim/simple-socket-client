@@ -2,7 +2,7 @@
 
 #include <boost/asio.hpp>
 
-#include "client.hpp"
+#include "Client.hpp"
 
 class STDOutReceiveListener
  : public ReceiveListener

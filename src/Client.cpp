@@ -8,7 +8,7 @@
 #include <boost/bind.hpp>
 #include <boost/shared_array.hpp>
 
-#include "client.hpp"
+#include "Client.hpp"
 
 using boost::asio::ip::tcp;
 
