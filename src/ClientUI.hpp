@@ -42,7 +42,7 @@ private:
 	GtkWidget *host_name;
 	GtkWidget *service_text;
 	GtkWidget *connect_button;
-	GtkWidget *chat_text;
+	GtkWidget *client_text;
 	GtkWidget *bot_line;
 	GtkWidget *send_text;
 	GtkWidget *send_button;
