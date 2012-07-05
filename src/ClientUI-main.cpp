@@ -23,10 +23,14 @@ void Debugger::on_connect(const std::string &host, const std::string &service)
 int main(int argc, char *argv[])
 {
 	gtk_init(&argc, &argv);
+
 	ClientUI ui;
 	Debugger d;
 	ui.add_send_listener(d);
 	ui.add_connect_listener(d);
 	ui.display();
+
 	gtk_main();
+
+	return 0;
 }

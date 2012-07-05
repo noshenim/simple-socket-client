@@ -19,15 +19,19 @@ class ConnectListener
 {
 friend class ClientUI;
 protected:
-	virtual void on_connect(const std::string &host, 
-						const std::string &service);
+	virtual void on_connect(
+			const std::string &host, 
+			const std::string &service);
 private:
-	void connect(const std::string &host, const std::string &service);
+	void connect(const std::string &host, 
+		     const std::string &service);
 };
 
 class ClientUI
 {
 public:
+	ClientUI();
+	~ClientUI();
 	void display();
 	void add_send_listener(SendListener &listener);
 	void remove_send_listener(SendListener &listener);
@@ -35,7 +39,9 @@ public:
 	void remove_connect_listener(ConnectListener &listener);
 private:
 	std::list<SendListener*> send_listener_list;
+	std::list<SendListener*> send_listener_remove_list;
 	std::list<ConnectListener*> connect_listener_list;
+	std::list<ConnectListener*> connect_listener_remove_list;
 	GtkWidget *main_window;
 	GtkWidget *main_box;
 	GtkWidget *top_line;

@@ -10,14 +10,22 @@ void SendListener::send(const std::string &message)
 }
 
 void ConnectListener::on_connect(const std::string &host, 
-						const std::string &service)
+				 const std::string &service)
 {
 }
 
 void ConnectListener::connect(const std::string &host, 
-						const std::string &service)
+			      const std::string &service)
 {
 	on_connect(host, service);
+}
+
+ClientUI::ClientUI()
+{
+}
+
+ClientUI::~ClientUI()
+{
 }
 
 void ClientUI::display()
@@ -51,18 +59,22 @@ void ClientUI::display()
 	gtk_box_pack_start(GTK_BOX(main_box), bot_line, FALSE, FALSE, 0);
 	gtk_container_add(GTK_CONTAINER(main_window), main_box);
 
-	g_signal_connect(GTK_OBJECT(connect_button), "clicked", G_CALLBACK(
-					&ClientUI::connect_button_clicked),
-									this);
-	g_signal_connect(GTK_OBJECT(send_text), "key-press-event", G_CALLBACK(
-					&ClientUI::send_text_key_press_event),
-									this);
-	g_signal_connect(GTK_OBJECT(send_button), "clicked", G_CALLBACK(
-					&ClientUI::send_button_clicked), 
-									this);
-	g_signal_connect(GTK_OBJECT(main_window), "destroy", G_CALLBACK(
-					&ClientUI::main_window_destroy), 
-									this);
+	g_signal_connect(GTK_OBJECT(connect_button), 
+			 "clicked", 
+			 G_CALLBACK(&ClientUI::connect_button_clicked),
+			 this);
+	g_signal_connect(GTK_OBJECT(send_text), 
+			 "key-press-event", 
+			 G_CALLBACK(&ClientUI::send_text_key_press_event),
+			 this);
+	g_signal_connect(GTK_OBJECT(send_button), 
+			 "clicked", 
+			 G_CALLBACK(&ClientUI::send_button_clicked), 
+			 this);
+	g_signal_connect(GTK_OBJECT(main_window), 
+			 "destroy", 
+			 G_CALLBACK(&ClientUI::main_window_destroy), 
+			 this);
 
 	gtk_widget_show_all(main_window);
 }
@@ -74,7 +86,7 @@ void ClientUI::add_connect_listener(ConnectListener &listener)
 
 void ClientUI::remove_connect_listener(ConnectListener &listener)
 {
-	connect_listener_list.remove(&listener);
+	connect_listener_remove_list.push_back(&listener);
 }
 
 void ClientUI::add_send_listener(SendListener &listener)
@@ -84,18 +96,18 @@ void ClientUI::add_send_listener(SendListener &listener)
 
 void ClientUI::remove_send_listener(SendListener &listener)
 {
-	send_listener_list.remove(&listener);
+	send_listener_remove_list.push_back(&listener);
 }
 
-gboolean ClientUI::connect_button_clicked(	GtkWidget *widget, 
-						ClientUI *client_ui)
+gboolean ClientUI::connect_button_clicked(GtkWidget *widget, 
+					  ClientUI *client_ui)
 {
 	client_ui->connect_clicked();
 }
 
-gboolean ClientUI::send_text_key_press_event(	GtkWidget *widget, 
-						GdkEventKey *event, 
-						ClientUI *client_ui)
+gboolean ClientUI::send_text_key_press_event(GtkWidget *widget, 
+					     GdkEventKey *event, 
+					     ClientUI *client_ui)
 {
 	if (event->keyval == GDK_KEY_Return) {
 		client_ui->send_message();
@@ -103,12 +115,14 @@ gboolean ClientUI::send_text_key_press_event(	GtkWidget *widget,
 	return FALSE;
 }
 
-gboolean ClientUI::send_button_clicked(GtkWidget *widget, ClientUI *client_ui)
+gboolean ClientUI::send_button_clicked(GtkWidget *widget, 
+				       ClientUI *client_ui)
 {
 	client_ui->send_message();
 }
 
-gboolean ClientUI::main_window_destroy(GtkWidget *widget, ClientUI *client_ui)
+gboolean ClientUI::main_window_destroy(GtkWidget *widget, 
+				       ClientUI *client_ui)
 {
 	gtk_main_quit();
 }
@@ -120,11 +134,20 @@ void ClientUI::connect_clicked()
 	const gchar *service = gtk_entry_get_text(GTK_ENTRY(service_text));
 	guint16 serv_len = gtk_entry_get_text_length(GTK_ENTRY(service_text));
 	std::list<ConnectListener*>::iterator it;
-	for (		it = connect_listener_list.begin(); 
+	for (it = connect_listener_remove_list.begin(); 
+			it != connect_listener_remove_list.end();
+			it++) {
+		connect_listener_list.remove(*it);
+	}
+	connect_listener_remove_list.clear();
+	for (it = connect_listener_list.begin(); 
 			it != connect_listener_list.end(); 
-			++it) {
-		(*it)->connect(	std::string(host, host_len), 
-				std::string(service, serv_len));
+			it++) {
+		try {
+			(*it)->connect(	std::string(host, host_len), 
+					std::string(service, serv_len));
+		} catch (...) {
+		}
 	}
 }
 
@@ -135,14 +158,24 @@ void ClientUI::send_message()
 	/* the following two lines take the text from the input,
 	 * and write it the output text area (client with yourself). */
 	#if 0
-	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(
-								client_text));
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(
+						GTK_TEXT_VIEW(client_text));
 	gtk_text_buffer_insert_at_cursor(buffer, text, len);
 	#endif
 	std::list<SendListener*>::iterator it;
-	for (it = send_listener_list.begin(); it != send_listener_list.end();
-								++it) {
-		(*it)->send(std::string(text, len));
+	for (it = send_listener_remove_list.begin(); 
+			it != send_listener_remove_list.end();
+			it++) {
+		send_listener_list.remove(*it);
+	}
+	send_listener_remove_list.clear();
+	for (		it = send_listener_list.begin(); 
+			it != send_listener_list.end();
+			it++) {
+		try {
+			(*it)->send(std::string(text, len));
+		} catch (...) {
+		}
 	}
 	gtk_entry_set_text(GTK_ENTRY(send_text), "");
 }
